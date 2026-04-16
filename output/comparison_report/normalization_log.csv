@@ -1,0 +1,5 @@
+stage,source,action,status,rows_affected,rules_applied
+normalize,source_a,global_cleaning,applied,10,"['trim_whitespace', 'remove_nulls', 'case_normalize']"
+normalize,source_a,alias_groups,applied,,
+normalize,source_b,global_cleaning,applied,3,"['trim_whitespace', 'remove_nulls', 'case_normalize']"
+normalize,source_b,alias_groups,applied,,

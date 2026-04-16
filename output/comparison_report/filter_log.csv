@@ -1,0 +1,4 @@
+stage,source,action,column,status,rows_before,rows_after,rows_affected,rule_index,operator,value
+filter,source_a,skip,stock,applied,15,4,11,0,not_equals,0
+filter,source_a,skip,status,applied,4,2,2,1,not_in,"['Discontinued', 'Deleted']"
+filter,source_b,skip,state,applied,17,1,16,0,not_in,['archived']

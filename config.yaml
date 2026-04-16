@@ -1,0 +1,106 @@
+schema_version: "1.0"
+metadata:
+  title: "Product Catalog Comparison"
+  description: "Compare product data between internal catalog and supplier feed"
+  tags: ["products", "catalog", "reconciliation"]
+
+sources:
+  source_a:
+    file: "sample_data/products_internal.csv"
+    delimiter: ","
+    encoding: "utf-8"
+  source_b:
+    file: "sample_data/products_supplier.csv"
+    delimiter: ","
+    encoding: "utf-8"
+
+compare:
+  key_column:
+    source_a: "product_id"
+    source_b: "sku"
+  join_type: "inner"
+  column_mappings:
+    - source_a: "name"
+      source_b: "title"
+      method: "exact"
+    - source_a: "model"
+      source_b: "model_code"
+      method: "exact"
+    - source_a: "price"
+      source_b: "unit_price"
+      method: "exact"
+    - source_a: "stock"
+      source_b: "inventory"
+      method: "exact"
+    - source_a: "status"
+      source_b: "state"
+      method: "exact"
+
+pre_filters:
+  source_a:
+    - column: "stock"
+      operator: "not_equals"
+      value: "0"
+      action: "skip"
+    - column: "status"
+      operator: "not_in"
+      value: ["Discontinued", "Deleted"]
+      action: "skip"
+  source_b:
+    - column: "state"
+      operator: "not_in"
+      value: ["archived"]
+      action: "skip"
+
+normalization_rules:
+  global_cleaning:
+    trim_whitespace: true
+    remove_nulls: true
+    case_normalize: "lower"
+  alias_groups:
+    - normalized_name: "model alpha"
+      aliases: ["A001", "A002", "A003"]
+      display_format: "{normalized}({original})"
+    - normalized_name: "model beta"
+      aliases: ["B-X1", "B-X2", "BX1", "BX2"]
+      display_format: "{normalized}({original})"
+    - normalized_name: "model gamma"
+      aliases: ["G100", "G200"]
+      display_format: "{normalized}({original})"
+
+report:
+  title: "Product Catalog Comparison Report"
+  output:
+    formats:
+      - type: "excel"
+        file_name: "comparison_report.xlsx"
+      - type: "html"
+        file_name: "comparison_report.html"
+      - type: "csv"
+        file_name: "comparison_report"
+      - type: "markdown"
+        file_name: "comparison_report.md"
+  sections:
+    - name: "summary"
+      enabled: true
+      stats:
+        - "total_rows_a"
+        - "total_rows_b"
+        - "rows_filtered_a"
+        - "rows_filtered_b"
+        - "matched_keys"
+        - "only_in_a"
+        - "only_in_b"
+        - "full_match_count"
+        - "mismatch_count"
+        - "match_rate_percent"
+    - name: "mismatch_details"
+      enabled: true
+    - name: "unmatched_records"
+      enabled: true
+    - name: "per_column_breakdown"
+      enabled: true
+    - name: "normalization_log"
+      enabled: true
+    - name: "filter_log"
+      enabled: true

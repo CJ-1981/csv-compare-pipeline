@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Catalog Comparison Report</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-500: #6b7280;
+            --gray-700: #374151;
+            --gray-900: #111827;
+            --white: #ffffff;
+            --shadow: 0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--gray-50);
+            color: var(--gray-900);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+
+        .report-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white);
+            padding: 32px 40px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .report-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .report-header .timestamp {
+            font-size: 14px;
+            opacity: 0.85;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .metric-card {
+            background: var(--white);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary);
+        }
+
+        .metric-card.success { border-left-color: var(--success); }
+        .metric-card.danger { border-left-color: var(--danger); }
+        .metric-card.warning { border-left-color: var(--warning); }
+
+        .metric-card .label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gray-500);
+            margin-bottom: 4px;
+        }
+
+        .metric-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .metric-card .value.success { color: var(--success); }
+        .metric-card .value.danger { color: var(--danger); }
+
+        .section {
+            background: var(--white);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.15s;
+        }
+
+        .section-header:hover {
+            background-color: var(--gray-100);
+        }
+
+        .section-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+        .section-toggle {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--gray-500);
+            transition: transform 0.2s;
+        }
+
+        .section.collapsed .section-toggle {
+            transform: rotate(-90deg);
+        }
+
+        .section-content {
+            padding: 0 24px 24px 24px;
+        }
+
+        .section.collapsed .section-content {
+            display: none;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            background-color: var(--gray-200);
+            border-radius: 8px;
+            height: 24px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: 8px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--white);
+        }
+
+        .progress-bar.high { background-color: var(--success); }
+        .progress-bar.medium { background-color: var(--warning); }
+        .progress-bar.low { background-color: var(--danger); }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        table thead th {
+            background-color: var(--gray-100);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--gray-700);
+            border-bottom: 2px solid var(--gray-200);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            position: sticky;
+            top: 0;
+        }
+
+        table tbody td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--gray-200);
+            color: var(--gray-700);
+        }
+
+        table tbody tr:hover {
+            background-color: var(--gray-50);
+        }
+
+        table tbody tr.match-row td {
+            background-color: #dcfce7;
+        }
+
+        table tbody tr.mismatch-row td {
+            background-color: #fee2e2;
+        }
+
+        .table-wrapper {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background-color: #dcfce7;
+            color: var(--success);
+        }
+
+        .badge-danger {
+            background-color: #fee2e2;
+            color: var(--danger);
+        }
+
+        .badge-warning {
+            background-color: #fef3c7;
+            color: var(--warning);
+        }
+
+        .badge-info {
+            background-color: #dbeafe;
+            color: var(--primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 32px;
+            color: var(--gray-500);
+            font-style: italic;
+        }
+
+        .two-col-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .key-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .key-list li {
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            background-color: var(--gray-50);
+            margin-bottom: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .two-col-list {
+                grid-template-columns: 1fr;
+            }
+            .report-header {
+                padding: 24px;
+            }
+            .report-header h1 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="report-header">
+            <h1>Product Catalog Comparison Report</h1>
+            <div class="timestamp">Generated: 2026-04-16 06:19:13 UTC</div>
+        </div>
+
+        <div class="summary-grid">
+            <div class="metric-card">
+                <div class="label">Match Rate</div>
+                <div class="value danger">
+                    0.0%
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar low" style="width: 0.0%">
+                        0.0%
+                    </div>
+                </div>
+            </div>
+            <div class="metric-card success">
+                <div class="label">Full Matches</div>
+                <div class="value success">0</div>
+            </div>
+            <div class="metric-card danger">
+                <div class="label">Mismatches</div>
+                <div class="value danger">1</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Only in A</div>
+                <div class="value">1</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Only in B</div>
+                <div class="value">0</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Keys Compared</div>
+                <div class="value">1</div>
+            </div>
+        </div>
+
+        
+        <div class="section">
+            <div class="section-header">
+                <h2>Summary</h2>
+                <div class="section-toggle">&#9660;</div>
+            </div>
+            <div class="section-content">
+                <div class="empty-state">Section content rendered in summary cards above.</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>Mismatch Details <span class="badge badge-danger">1</span></h2>
+                <div class="section-toggle">&#9660;</div>
+            </div>
+            <div class="section-content">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Key</th>
+                                <th>Column</th>
+                                <th>Value A</th>
+                                <th>Value B</th>
+                                <th>Diff Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                <tr class="mismatch-row">
+                    <td>p005</td>
+                    <td>status vs state</td>
+                    <td><code>discontinued</code></td>
+                    <td><code>archived</code></td>
+                    <td><span class="badge badge-danger">Value Diff</span></td>
+                </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>Unmatched Records</h2>
+                <div class="section-toggle">&#9660;</div>
+            </div>
+            <div class="section-content">
+                <div class="two-col-list">
+                    <div>
+                        <h3 style="margin-bottom: 8px; color: var(--gray-700); font-size: 14px;">
+                            Only in Source A <span class="badge badge-danger">1</span>
+                        </h3>
+                        <ul class="key-list">
+                            <li>p013</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom: 8px; color: var(--gray-700); font-size: 14px;">
+                            Only in Source B <span class="badge badge-danger">0</span>
+                        </h3>
+                        <ul class="key-list">
+                            <li style="color: var(--gray-500); font-style: italic;">None</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>Per Column Breakdown</h2>
+                <div class="section-toggle">&#9660;</div>
+            </div>
+            <div class="section-content">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Column</th>
+                                <th>Matched</th>
+                                <th>Mismatched</th>
+                                <th>Total</th>
+                                <th>Match Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                <tr>
+                    <td><code>model vs model_code</code></td>
+                    <td>1</td>
+                    <td>0</td>
+                    <td>1</td>
+                    <td>
+                        <span class="badge badge-success">100.0%</span>
+                        <div class="progress-bar-container" style="width: 120px; display: inline-block; vertical-align: middle; margin-left: 8px;">
+                            <div class="progress-bar high" style="width: 100.0%; font-size: 10px;">
+                                100.0%
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>name vs title</code></td>
+                    <td>1</td>
+                    <td>0</td>
+                    <td>1</td>
+                    <td>
+                        <span class="badge badge-success">100.0%</span>
+                        <div class="progress-bar-container" style="width: 120px; display: inline-block; vertical-align: middle; margin-left: 8px;">
+                            <div class="progress-bar high" style="width: 100.0%; font-size: 10px;">
+                                100.0%
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>price vs unit_price</code></td>
+                    <td>1</td>
+                    <td>0</td>
+                    <td>1</td>
+                    <td>
+                        <span class="badge badge-success">100.0%</span>
+                        <div class="progress-bar-container" style="width: 120px; display: inline-block; vertical-align: middle; margin-left: 8px;">
+                            <div class="progress-bar high" style="width: 100.0%; font-size: 10px;">
+                                100.0%
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>status vs state</code></td>
+                    <td>0</td>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>
+                        <span class="badge badge-danger">0.0%</span>
+                        <div class="progress-bar-container" style="width: 120px; display: inline-block; vertical-align: middle; margin-left: 8px;">
+                            <div class="progress-bar low" style="width: 0.0%; font-size: 10px;">
+                                0.0%
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td><code>stock vs inventory</code></td>
+                    <td>1</td>
+                    <td>0</td>
+                    <td>1</td>
+                    <td>
+                        <span class="badge badge-success">100.0%</span>
+                        <div class="progress-bar-container" style="width: 120px; display: inline-block; vertical-align: middle; margin-left: 8px;">
+                            <div class="progress-bar high" style="width: 100.0%; font-size: 10px;">
+                                100.0%
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>Normalization Log <span class="badge badge-info">4</span></h2>
+                <div class="section-toggle">&#9660;</div>
+            </div>
+            <div class="section-content">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr><th>Stage</th><th>Source</th><th>Action</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>normalize</td><td>source_a</td><td>global_cleaning</td><td><span class="badge badge-success">applied</span></td></tr><tr><td>normalize</td><td>source_a</td><td>alias_groups</td><td><span class="badge badge-success">applied</span></td></tr><tr><td>normalize</td><td>source_b</td><td>global_cleaning</td><td><span class="badge badge-success">applied</span></td></tr><tr><td>normalize</td><td>source_b</td><td>alias_groups</td><td><span class="badge badge-success">applied</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>Filter Log <span class="badge badge-info">3</span></h2>
+                <div class="section-toggle">&#9660;</div>
+            </div>
+            <div class="section-content">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr><th>Stage</th><th>Source</th><th>Action</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>filter</td><td>source_a</td><td>skip</td><td><span class="badge badge-success">applied</span></td></tr><tr><td>filter</td><td>source_a</td><td>skip</td><td><span class="badge badge-success">applied</span></td></tr><tr><td>filter</td><td>source_b</td><td>skip</td><td><span class="badge badge-success">applied</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.section-header').forEach(function(header) {
+            header.addEventListener('click', function() {
+                this.parentElement.classList.toggle('collapsed');
+            });
+        });
+    </script>
+</body>
+</html>

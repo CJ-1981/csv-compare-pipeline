@@ -1,0 +1,11 @@
+Metric,Value
+Total Rows (Source A),15
+Total Rows (Source B),17
+Keys Compared,1
+Fully Matched Keys,0
+Keys with Mismatches,1
+Only in Source A,1
+Only in Source B,0
+Cell-Level Matches,4
+Cell-Level Mismatches,1
+Match Rate (%),0.0

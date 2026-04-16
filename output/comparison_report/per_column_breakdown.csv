@@ -1,0 +1,6 @@
+Column,Matched,Mismatched,Total,Match Rate %
+model vs model_code,1,0,1,100.0
+name vs title,1,0,1,100.0
+price vs unit_price,1,0,1,100.0
+status vs state,0,1,1,0.0
+stock vs inventory,1,0,1,100.0
